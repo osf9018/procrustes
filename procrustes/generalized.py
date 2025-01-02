@@ -40,6 +40,7 @@ def generalized(
     tol: float = 1.0e-7,
     n_iter: int = 200,
     check_finite: bool = True,
+    lapack_driver: str = "gesvd"
 ) -> Tuple[List[np.ndarray], float]:
     r"""Generalized Procrustes Analysis.
 
@@ -56,6 +57,10 @@ def generalized(
         Number of total iterations.
     check_finite : bool, optional
         If true, convert the input to an array, checking for NaNs or Infs.
+    lapack_driver : {'gesvd', 'gesdd'}, optional
+        Whether to use the more efficient divide-and-conquer approach ('gesdd') or the more robust
+        general rectangular approach ('gesvd') to compute the singular-value decomposition with
+        `scipy.linalg.svd`.
 
     Returns
     -------
@@ -88,7 +93,7 @@ def generalized(
     if ref is None:
         # the first array will be used to build the initial ref
         array_aligned = [array_list[0]] + [
-            _orthogonal(arr, array_list[0]) for arr in array_list[1:]
+            _orthogonal(arr, array_list[0], lapack_driver) for arr in array_list[1:]
         ]
         ref = np.mean(array_aligned, axis=0)
     else:
@@ -98,7 +103,7 @@ def generalized(
     distance_gpa = np.inf
     for _ in np.arange(n_iter):
         # align to ref
-        array_aligned = [_orthogonal(arr, ref) for arr in array_list]
+        array_aligned = [_orthogonal(arr, ref, lapack_driver) for arr in array_list]
         # the mean
         new_ref = np.mean(array_aligned, axis=0)
         # todo: double check if the error is defined in the right way
@@ -110,7 +115,11 @@ def generalized(
     return array_aligned, new_distance_gpa
 
 
-def _orthogonal(arr_a: np.ndarray, arr_b: np.ndarray) -> np.ndarray:
+def _orthogonal(
+        arr_a: np.ndarray,
+        arr_b: np.ndarray,
+        lapack_driver: str = "gesvd") -> np.ndarray:
     """Orthogonal Procrustes transformation and returns the transformed array."""
-    res = orthogonal(arr_a, arr_b, translate=False, scale=False, unpad_col=False, unpad_row=False)
+    res = orthogonal(
+        arr_a, arr_b, translate=False, scale=False, unpad_col=False, unpad_row=False, lapack_driver=lapack_driver)
     return np.dot(res["new_a"], res["t"])
