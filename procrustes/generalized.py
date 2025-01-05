@@ -40,7 +40,9 @@ def generalized(
     tol: float = 1.0e-7,
     n_iter: int = 200,
     check_finite: bool = True,
-    lapack_driver: str = "gesvd"
+    lapack_driver: str = "gesvd",
+    translate=False,
+    scale=False
 ) -> Tuple[List[np.ndarray], float]:
     r"""Generalized Procrustes Analysis.
 
@@ -93,7 +95,7 @@ def generalized(
     if ref is None:
         # the first array will be used to build the initial ref
         array_aligned = [array_list[0]] + [
-            _orthogonal(arr, array_list[0], lapack_driver) for arr in array_list[1:]
+            _orthogonal(arr, array_list[0], lapack_driver, translate, scale) for arr in array_list[1:]
         ]
         ref = np.mean(array_aligned, axis=0)
     else:
@@ -103,7 +105,7 @@ def generalized(
     distance_gpa = np.inf
     for _ in np.arange(n_iter):
         # align to ref
-        array_aligned = [_orthogonal(arr, ref, lapack_driver) for arr in array_list]
+        array_aligned = [_orthogonal(arr, ref, lapack_driver, translate, scale) for arr in array_list]
         # the mean
         new_ref = np.mean(array_aligned, axis=0)
         # todo: double check if the error is defined in the right way
@@ -118,8 +120,10 @@ def generalized(
 def _orthogonal(
         arr_a: np.ndarray,
         arr_b: np.ndarray,
-        lapack_driver: str = "gesvd") -> np.ndarray:
+        lapack_driver: str = "gesvd",
+        translate=False,
+        scale=False) -> np.ndarray:
     """Orthogonal Procrustes transformation and returns the transformed array."""
     res = orthogonal(
-        arr_a, arr_b, translate=False, scale=False, unpad_col=False, unpad_row=False, lapack_driver=lapack_driver)
+        arr_a, arr_b, translate=translate, scale=scale, unpad_col=False, unpad_row=False, lapack_driver=lapack_driver)
     return np.dot(res["new_a"], res["t"])
