@@ -107,6 +107,7 @@ def generalized(
 
     distance_gpa = np.inf
     for i in np.arange(n_iter):
+        logging.info(f'-- distance_gpa: {diff_dist:.16f}')
         # align to ref
         array_aligned = [_orthogonal(arr, ref, lapack_driver, translate, scale) for arr in array_list]
         # the mean
@@ -115,7 +116,7 @@ def generalized(
         # the error
         new_distance_gpa = np.square(ref - new_ref).sum()
         diff_dist = np.abs(new_distance_gpa - distance_gpa)
-        logging.info(f'-- distance to mean: {diff_dist:.7f}')
+        logging.info(f'-- distance to mean: {diff_dist:.16f}')
         if distance_gpa != np.inf and diff_dist < tol and i >= (min_iter - 1):
             break
         distance_gpa = new_distance_gpa
