@@ -25,6 +25,7 @@
 from typing import List, Optional, Tuple
 
 import numpy as np
+import logging
 
 from procrustes import orthogonal
 from procrustes.utils import _check_arraytypes
@@ -111,7 +112,9 @@ def generalized(
         # todo: double check if the error is defined in the right way
         # the error
         new_distance_gpa = np.square(ref - new_ref).sum()
-        if distance_gpa != np.inf and np.abs(new_distance_gpa - distance_gpa) < tol:
+        diff_dist = np.abs(new_distance_gpa - distance_gpa)
+        logging.info(f'-- distance to mean: {diff_dist:.7f}')
+        if distance_gpa != np.inf and diff_dist < tol:
             break
         distance_gpa = new_distance_gpa
     return array_aligned, new_distance_gpa
