@@ -40,6 +40,7 @@ def generalized(
     ref: Optional[np.ndarray] = None,
     tol: float = 1.0e-7,
     n_iter: int = 200,
+    min_iter: int = 0,
     check_finite: bool = True,
     lapack_driver: str = "gesvd",
     translate=False,
@@ -58,6 +59,7 @@ def generalized(
         Tolerance value to stop the iterations.
     n_iter: int, optional
         Number of total iterations.
+    min_iter: minimal number of iterations.
     check_finite : bool, optional
         If true, convert the input to an array, checking for NaNs or Infs.
     lapack_driver : {'gesvd', 'gesdd'}, optional
@@ -104,7 +106,7 @@ def generalized(
         ref = ref.copy()
 
     distance_gpa = np.inf
-    for _ in np.arange(n_iter):
+    for i in np.arange(n_iter):
         # align to ref
         array_aligned = [_orthogonal(arr, ref, lapack_driver, translate, scale) for arr in array_list]
         # the mean
@@ -114,7 +116,7 @@ def generalized(
         new_distance_gpa = np.square(ref - new_ref).sum()
         diff_dist = np.abs(new_distance_gpa - distance_gpa)
         logging.info(f'-- distance to mean: {diff_dist:.7f}')
-        if distance_gpa != np.inf and diff_dist < tol:
+        if distance_gpa != np.inf and diff_dist < tol and i >= (min_iter - 1):
             break
         distance_gpa = new_distance_gpa
     return array_aligned, new_distance_gpa
