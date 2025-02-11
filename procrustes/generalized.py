@@ -43,8 +43,9 @@ def generalized(
     min_iter: int = 0,
     check_finite: bool = True,
     lapack_driver: str = "gesvd",
-    translate=False,
-    scale=False
+    translate: bool = False,
+    scale: bool = False,
+    multi_ref: bool = False
 ) -> Tuple[List[np.ndarray], float]:
     r"""Generalized Procrustes Analysis.
 
@@ -101,6 +102,13 @@ def generalized(
             _orthogonal(arr, array_list[0], lapack_driver, translate, scale) for arr in array_list[1:]
         ]
         ref = np.mean(array_aligned, axis=0)
+        if multi_ref:
+            # build a ref by focusing on the last element
+            array_aligned = [array_list[-1]] + [
+                _orthogonal(arr, array_list[-1], lapack_driver, translate, scale) for arr in array_list[:-1]
+            ]
+            refp = np.mean(array_aligned, axis=0)
+            ref = np.mean([ref, refp], axis=0)
     else:
         array_aligned = [None] * len(array_list)
         ref = ref.copy()
