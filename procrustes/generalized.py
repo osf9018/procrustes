@@ -107,7 +107,7 @@ def generalized(
 
     distance_gpa = np.inf
     for i in np.arange(n_iter):
-        logging.info(f'-- distance_gpa: {diff_dist:.16f}')
+        logging.info(f'-- distance_gpa: {distance_gpa:.16f}')
         # align to ref
         array_aligned = [_orthogonal(arr, ref, lapack_driver, translate, scale) for arr in array_list]
         # the mean
